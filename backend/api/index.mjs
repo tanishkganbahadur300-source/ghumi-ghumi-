@@ -220,6 +220,31 @@ async function writeWords(list) {
   if (!res.ok) throw new Error("words save failed " + res.status + " " + (await res.text()).slice(0, 200));
 }
 
+// ---------- names added to the Birthdays, Trips and Outings lists ----------
+// Kept in the bucket so everyone sees the same folders. Removing a name leaves its photos alone.
+const FOLDERS_KEY = "meta/folders.json";
+const FOLDER_KINDS = ["birthday", "trip", "outing"];
+const MAX_FOLDERS = 300;
+
+async function readFolders() {
+  const folders = { birthday: [], trip: [], outing: [] };
+  const res = await s3("GET", FOLDERS_KEY);
+  if (res.status === 404) return folders;
+  const text = await res.text();
+  if (!res.ok) throw new Error("folder list failed " + res.status + " " + text.slice(0, 200));
+  try {
+    const saved = JSON.parse(text);
+    for (const kind of FOLDER_KINDS) {
+      if (Array.isArray(saved[kind])) folders[kind] = saved[kind].filter((x) => typeof x === "string");
+    }
+  } catch (e) { /* unreadable: start again from empty lists */ }
+  return folders;
+}
+async function writeFolders(folders) {
+  const res = await s3("PUT", FOLDERS_KEY, {}, JSON.stringify(folders), { "content-type": "application/json" });
+  if (!res.ok) throw new Error("folder save failed " + res.status + " " + (await res.text()).slice(0, 200));
+}
+
 // ---------- routes ----------
 export default {
   async fetch(request) {
@@ -312,6 +337,28 @@ export default {
         words.push(word);
         await writeWords(words);
         return json({ ok: true, word });
+      }
+
+      if (path === "/folders" && request.method === "GET") {
+        if (!tokenOk(request)) return json({ error: "Please log in." }, 401);
+        return json({ folders: await readFolders() });
+      }
+      if (request.method === "POST" && (path === "/folders" || path === "/folders/remove")) {
+        if (!tokenOk(request)) return json({ error: "Please log in." }, 401);
+        const body = await request.json().catch(() => ({}));
+        const kind = String(body.kind || "");
+        const name = cleanName(body.name);
+        if (!FOLDER_KINDS.includes(kind) || !name) return json({ error: "Type a name first." }, 400);
+        const folders = await readFolders();
+        const same = (x) => x.toLowerCase() === name.toLowerCase();
+        if (path === "/folders/remove") {
+          folders[kind] = folders[kind].filter((x) => !same(x));
+        } else if (!folders[kind].some(same)) {
+          if (folders[kind].length >= MAX_FOLDERS) return json({ error: "The list is full. Delete an old one first." }, 400);
+          folders[kind].push(name);
+        }
+        await writeFolders(folders);
+        return json({ ok: true, folders });
       }
 
       const delWord = path.match(/^\/words\/(\d{13}-[a-f0-9]{12})$/);

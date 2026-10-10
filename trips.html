@@ -45,110 +45,20 @@
   <script src="backgrounds.js"></script>
   <script src="media-paths.js"></script>
   <script src="slideshow.js"></script>
+  <script src="folders.js"></script>
   <script>
     createBackgroundSlideshow(document.getElementById("background"), {
       images: BACKGROUND_IMAGES,
       interval: 6000
     });
 
-    // the trips; ones added on this page are remembered in this browser
-    const MEMBERS = ["Trek"];
-    const STORE_KEY = "ghumi-trips";
-
-    function loadAdded() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORE_KEY));
-        return Array.isArray(saved) ? saved.filter((n) => typeof n === "string") : [];
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function saveAdded() {
-      try {
-        localStorage.setItem(STORE_KEY, JSON.stringify(added));
-      } catch (e) { /* storage unavailable: the list still works until the page is closed */ }
-    }
-
-    let added = loadAdded();
-    const list = document.getElementById("members");
-    const note = document.getElementById("add-note");
-
-    function render() {
-      list.textContent = "";
-      MEMBERS.concat(added).forEach((name, index) => {
-        const li = document.createElement("li");
-        li.className = "member";
-
-        // each trip opens its own photo wall
-        const link = document.createElement("a");
-        link.className = "member-name";
-        link.href = "person.html#trip:" + encodeURIComponent(name);
-        link.textContent = name;
-
-        li.appendChild(link);
-
-        if (index >= MEMBERS.length) {
-          const remove = document.createElement("button");
-          remove.type = "button";
-          remove.className = "member-remove";
-          remove.setAttribute("aria-label", "Remove " + name);
-          remove.textContent = "×";
-          // the cross only asks; the item goes when "Delete" is pressed
-          const ask = document.createElement("span");
-          ask.className = "member-confirm";
-          ask.hidden = true;
-          const question = document.createElement("span");
-          question.textContent = "Delete?";
-          const yes = document.createElement("button");
-          yes.type = "button";
-          yes.className = "member-yes";
-          yes.textContent = "Delete";
-          const no = document.createElement("button");
-          no.type = "button";
-          no.className = "member-no";
-          no.textContent = "Keep";
-          ask.append(question, yes, no);
-
-          remove.addEventListener("click", () => {
-            remove.hidden = true;
-            ask.hidden = false;
-            no.focus();
-          });
-          no.addEventListener("click", () => {
-            ask.hidden = true;
-            remove.hidden = false;
-            remove.focus();
-          });
-          yes.addEventListener("click", () => {
-            added.splice(index - MEMBERS.length, 1);
-            saveAdded();
-            render();
-          });
-          li.append(remove, ask);
-        }
-        list.appendChild(li);
-      });
-    }
-
-    document.getElementById("add-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const input = document.getElementById("member-name");
-      const name = input.value.trim().replace(/\s+/g, " ");
-      if (!name) return;
-      const exists = MEMBERS.concat(added).some((n) => n.toLowerCase() === name.toLowerCase());
-      if (exists) {
-        note.textContent = name + " is already in the list.";
-        return;
-      }
-      added.push(name);
-      saveAdded();
-      render();
-      input.value = "";
-      note.textContent = name + " added.";
+    // the trips; ones added on this page are kept online, so everyone sees them
+    createFolderList({
+      kind: "trip",
+      fixed: ["Trek"],
+      link: "person.html#trip:",
+      oldKey: "ghumi-trips"
     });
-
-    render();
   </script>
   <script>
     // lets phones and computers install the site as an app (only on a real web address)
