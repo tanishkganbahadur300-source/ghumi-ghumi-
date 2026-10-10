@@ -1,6 +1,5 @@
 backend/passcode.txt
 .claude/
-# photos and videos live in cloud storage, not in the code repository
-wall/
-images/
-assets/
+# videos live in separate cloud storage; the original 8K landing video is not used by the site
+wall/video/
+assets/landing.webm
