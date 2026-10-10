@@ -1,0 +1,6 @@
+backend/passcode.txt
+.claude/
+# photos and videos live in cloud storage, not in the code repository
+wall/
+images/
+assets/

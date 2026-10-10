@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GHUMI GHUMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GHUMI GHUMI">
+  <script src="auth.js"></script>
+</head>
+<body class="spiral-page">
+  <div id="background" class="page-bg" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="site-name" href="index.html">GHUMI GHUMI</a>
+    <div class="account">
+      <button id="account-btn" class="chip" type="button" aria-haspopup="true" aria-expanded="false"></button>
+      <div id="account-menu" class="account-menu" hidden>
+        <p id="account-who" class="account-who"></p>
+        <form id="user-form" class="account-form" autocomplete="off">
+          <label class="account-label" for="user-name">Let someone new log in</label>
+          <div class="add-row">
+            <input id="user-name" class="add-input" type="text" maxlength="30" placeholder="Their name" required>
+            <button class="block-btn add-btn" type="submit">Add</button>
+          </div>
+          <p id="user-note" class="add-note" role="status"></p>
+        </form>
+        <button id="logout-btn" class="block-btn account-logout" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="home-layout">
+    <div id="spiral" class="spiral"></div>
+
+    <aside class="side side-left">
+      <section class="block">
+        <header class="block-head">
+          <span class="block-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.5A4 4 0 0 1 12 8a4 4 0 0 1 7 2.5C19 15.6 12 20 12 20z"/></svg></span>
+          <div>
+            <h2 class="block-title">Memories</h2>
+            <p class="block-sub">Our best days together</p>
+          </div>
+        </header>
+        <ul class="block-list">
+          <li><a href="birthdays.html"><svg class="row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c2 1.5 4 1.5 5.3 0 1.4 1.5 4 1.5 5.4 0 1.3 1.5 3.3 1.5 5.3 0"/><path d="M12 11V7"/><path d="M12 4v.5"/></svg><span>Birthdays</span><svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+          <li><a href="trips.html"><svg class="row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.6-6-10.5a6 6 0 0 1 12 0C18 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.2"/></svg><span>Trips</span><svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+          <li><a href="outings.html"><svg class="row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.6"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span>Outings</span><svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+        </ul>
+      </section>
+      <section class="block">
+        <header class="block-head">
+          <span class="block-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4"/></svg></span>
+          <div>
+            <h2 class="block-title">Photo Wall</h2>
+            <p class="block-sub">All our photos in one place</p>
+          </div>
+        </header>
+        <div class="thumb-stack">
+          <img data-media="images/photo-003.jpg" alt="Open photo">
+          <img data-media="images/photo-021.jpg" alt="Open photo">
+          <img data-media="images/photo-047.jpg" alt="Open photo">
+          <img data-media="images/photo-078.jpg" alt="Open photo">
+        </div>
+        <a class="block-btn" href="wall.html">Open wall <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </section>
+    </aside>
+
+    <aside class="side side-right">
+      <section class="block">
+        <header class="block-head">
+          <span class="block-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4.5L16.500 4a2.100 2.100 0 0 1 3 3L8 18.500z"/><path d="M14.500 6l3 3"/></svg></span>
+          <div>
+            <h2 class="block-title">Words</h2>
+            <p class="block-sub">Things we said and wrote</p>
+          </div>
+        </header>
+        <ul id="words-links" class="block-list">
+          <li><a href="words.html#thoughts"><svg class="row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17v-4a5 5 0 0 1 4-5v2.5A2.500 2.500 0 0 0 7.500 13H10v4z"/><path d="M14 17v-4a5 5 0 0 1 4-5v2.5a2.500 2.500 0 0 0-1.500 2.500H19v4z"/></svg><span>Thought of the day</span><svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+          <li><a href="words.html#poems"><svg class="row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h10a4 4 0 0 1 4 4v10H9a4 4 0 0 1-4-4z"/><path d="M9 10h6M9 14h4"/></svg><span>Poems</span><svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+          <li><a href="words.html#add"><svg class="row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a poem or thought</span><svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li>
+        </ul>
+        <ul id="words-feed" class="words-feed" hidden></ul>
+      </section>
+      <section class="block">
+        <header class="block-head">
+          <span class="block-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5l5-3v9l-5-3z"/></svg></span>
+          <div>
+            <h2 class="block-title">Vlogs &amp; Photos</h2>
+            <p class="block-sub">Record a vlog or take a photo</p>
+          </div>
+        </header>
+        <p class="block-text">Capture a moment and post it to the wall.</p>
+        <div class="block-actions">
+          <a class="block-btn" href="vlogs.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Open camera</a>
+          <a class="block-btn" href="vlogs.html#posts">See posts</a>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="lightbox" class="lightbox" data-no-delete hidden>
+    <button class="lightbox-btn lightbox-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="lightbox-btn lightbox-prev" type="button" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <div class="lightbox-media"></div>
+    <button class="lightbox-btn lightbox-next" type="button" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+    <p class="lightbox-caption"></p>
+  </div>
+
+  <script src="images.js"></script>
+  <script src="spiral.js"></script>
+  <script src="backgrounds.js"></script>
+  <script src="media-paths.js"></script>
+  <script src="slideshow.js"></script>
+  <script src="media-store.js"></script>
+  <script>
+    // ---------- account menu ----------
+    const accountBtn = document.getElementById("account-btn");
+    const accountMenu = document.getElementById("account-menu");
+    accountBtn.textContent = Auth.name() || "Account";
+    document.getElementById("account-who").textContent = "Logged in as " + (Auth.name() || "a member");
+    function toggleAccount(open) {
+      accountMenu.hidden = !open;
+      accountBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    accountBtn.addEventListener("click", () => toggleAccount(accountMenu.hidden));
+    document.addEventListener("click", (e) => { if (!e.target.closest(".account")) toggleAccount(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleAccount(false); });
+    document.getElementById("logout-btn").addEventListener("click", () => Auth.logout());
+
+    // a new person logs in with their name and the same group password
+    document.getElementById("user-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("user-name");
+      const note = document.getElementById("user-note");
+      note.textContent = "Adding…";
+      try {
+        const res = await fetch(Auth.API + "/users", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: "Bearer " + Auth.token() },
+          body: JSON.stringify({ name: input.value })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) return Auth.goLogin();
+        if (!res.ok) throw new Error(data.error || "Could not add them. Try again.");
+        note.textContent = input.value.trim() + " can now log in with the group password.";
+        input.value = "";
+      } catch (err) {
+        note.textContent = err instanceof TypeError ? "No connection. Try again." : err.message;
+      }
+    });
+
+    // ---------- Words card: show the added thoughts and poems, newest first ----------
+    const WORDS_KEY = "ghumi-words";
+    const wordsFeed = document.getElementById("words-feed");
+    const wordsLinks = document.getElementById("words-links");
+
+    function loadWords() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(WORDS_KEY));
+        return Array.isArray(saved) ? saved.filter((w) => w && typeof w.text === "string" && (w.kind === "thought" || w.kind === "poem")) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function renderWords() {
+      const words = loadWords();
+      wordsFeed.textContent = "";
+      wordsFeed.hidden = words.length === 0;
+      // once there is something to show, the two plain links make way for it
+      wordsLinks.querySelectorAll("li").forEach((li, i) => { li.hidden = words.length > 0 && i < 2; });
+
+      words.slice().reverse().forEach((w) => {
+        const li = document.createElement("li");
+        li.className = "feed-item";
+
+        const link = document.createElement("a");
+        link.className = "feed-link";
+        link.href = "words.html#" + (w.kind === "poem" ? "poems" : "thoughts");
+        const kind = document.createElement("span");
+        kind.className = "feed-kind";
+        kind.textContent = (w.kind === "poem" ? "Poem" : "Thought") + (w.by ? " · " + w.by : "");
+        const text = document.createElement("span");
+        text.className = "feed-text";
+        text.textContent = w.text;
+        link.append(kind, text);
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "member-remove";
+        remove.setAttribute("aria-label", "Delete this " + w.kind);
+        remove.textContent = "×";
+        remove.addEventListener("click", () => {
+          const all = loadWords();
+          const at = all.findIndex((x) => x.kind === w.kind && x.text === w.text && x.by === w.by && x.added === w.added);
+          if (at !== -1) all.splice(at, 1);
+          try {
+            localStorage.setItem(WORDS_KEY, JSON.stringify(all));
+          } catch (e) { /* storage unavailable */ }
+          renderWords();
+        });
+
+        li.append(link, remove);
+        wordsFeed.appendChild(li);
+      });
+    }
+    renderWords();
+    // keep the card up to date when something is added in another tab or on coming back to this page
+    window.addEventListener("storage", renderWords);
+    window.addEventListener("pageshow", renderWords);
+
+    createBackgroundSlideshow(document.getElementById("background"), {
+      images: BACKGROUND_IMAGES,
+      interval: 6000
+    });
+
+    // ---------- full-size viewer for the spiral photos ----------
+    const lightbox = document.getElementById("lightbox");
+    const media = lightbox.querySelector(".lightbox-media");
+    const caption = lightbox.querySelector(".lightbox-caption");
+    let openIndex = -1;
+    let openedAt = 0;
+
+    let spiralItems = SPIRAL_IMAGES; // minus anything deleted, once the online list has loaded
+    let spiral = null;
+
+    function showPhoto(index) {
+      openIndex = (index + spiralItems.length) % spiralItems.length;
+      const item = spiralItems[openIndex];
+      media.textContent = "";
+      const img = document.createElement("img");
+      img.src = item.full || item.src; // uploads show a small picture in the spiral and the full one here
+      img.alt = item.alt || "";
+      media.appendChild(img);
+      caption.textContent = (openIndex + 1) + " of " + spiralItems.length;
+      if (lightbox.hidden) openedAt = performance.now();
+      lightbox.hidden = false;
+      if (spiral) spiral.pause(); // stop turning while a photo is open
+    }
+    function hidePhoto() {
+      media.textContent = "";
+      lightbox.hidden = true;
+      openIndex = -1;
+      if (spiral) spiral.resume();
+    }
+    lightbox.querySelector(".lightbox-close").addEventListener("click", hidePhoto);
+    lightbox.querySelector(".lightbox-prev").addEventListener("click", () => showPhoto(openIndex - 1));
+    lightbox.querySelector(".lightbox-next").addEventListener("click", () => showPhoto(openIndex + 1));
+    lightbox.addEventListener("click", (e) => {
+      // the click that opened the photo also lands here, so ignore clicks right after opening
+      if (performance.now() - openedAt < 400) return;
+      if (e.target === lightbox || e.target === media) hidePhoto();
+    });
+    window.addEventListener("keydown", (e) => {
+      if (lightbox.hidden) return;
+      if (e.key === "Escape") hidePhoto();
+      if (e.key === "ArrowLeft") showPhoto(openIndex - 1);
+      if (e.key === "ArrowRight") showPhoto(openIndex + 1);
+    });
+
+    // the small previews on the Photo Wall card open full-size too
+    document.querySelectorAll(".thumb-stack img").forEach((img) => {
+      img.addEventListener("click", () => {
+        const at = spiralItems.findIndex((p) => p.path === img.dataset.media);
+        if (at !== -1) showPhoto(at);
+      });
+    });
+
+    // photos deleted from the spiral are left out; if the online list cannot be reached, its own photos are shown
+    // Photos uploaded anywhere on the site (camera posts, birthdays, trips, outings, the wall)
+    // come first in the spiral, newest first, followed by the spiral's own photos.
+    MediaStore.state().then(({ posts, hidden }) => {
+      const uploaded = posts.filter((p) => p.t === "p").map((p) => ({ src: p.thumb, full: p.src, alt: "Uploaded photo" }));
+      spiralItems = uploaded.concat(SPIRAL_IMAGES.filter((p) => !hidden.has(p.path)));
+    }).catch(() => {}).then(() => {
+      spiral = createInfiniteSpiral(document.getElementById("spiral"), {
+        items: spiralItems,
+        animationMode: "all",
+        speed: 0.55,
+        radius: 170,
+        cardWidth: 140,
+        cardHeight: 128,
+        verticalSpacing: 60,
+        perspective: 1000,
+        cardRadius: 10,
+        centerScale: 1.2,
+        edgeBlur: 6,
+        cardsPerTurn: 7,
+        pauseOnHover: false,
+        onOpen: showPhoto
+      });
+    });
+  </script>
+  <script src="lightbox-tools.js"></script>
+  <script>
+    // lets phones and computers install the site as an app (only on a real web address)
+    if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>

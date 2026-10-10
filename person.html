@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday · GHUMI GHUMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GHUMI GHUMI">
+  <script src="auth.js"></script>
+</head>
+<body class="wall-page person-page">
+  <div id="background" class="page-bg" aria-hidden="true"></div>
+
+  <header class="wall-header">
+    <a class="wall-back" href="birthdays.html" aria-label="Back to birthdays">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </a>
+    <h1 id="person-name" class="wall-title"></h1>
+    <div class="wall-actions">
+      <button id="add-photos" class="chip chip-add" type="button">+ Add photos</button>
+    </div>
+  </header>
+
+  <!-- this person's photos -->
+  <main id="person-wall" class="person-wall"></main>
+  <p id="person-empty" class="person-empty" hidden>No photos here yet.</p>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lightbox-btn lightbox-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="lightbox-btn lightbox-prev" type="button" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <div class="lightbox-media"></div>
+    <button class="lightbox-btn lightbox-next" type="button" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+    <p class="lightbox-caption"></p>
+  </div>
+
+  <script src="backgrounds.js"></script>
+  <script src="slideshow.js"></script>
+  <script src="wall.js"></script>
+  <script src="media-paths.js"></script>
+  <script src="people.js"></script>
+  <script src="circular.js"></script>
+  <script src="media-store.js"></script>
+  <script src="uploader.js"></script>
+  <script>
+    createBackgroundSlideshow(document.getElementById("background"), {
+      images: BACKGROUND_IMAGES,
+      interval: 6000
+    });
+
+    // one page serves every member: the name comes from the link, e.g. person.html#Aditya
+    // links look like person.html#Aditya (birthday), #trip:Trek or #outing:Picnic
+    const SECTIONS = {
+      birthday: { list: "birthdays.html", label: "birthdays", albums: PEOPLE_ALBUMS },
+      trip: { list: "trips.html", label: "trips", albums: TRIP_ALBUMS },
+      outing: { list: "outings.html", label: "outings", albums: OUTING_ALBUMS }
+    };
+    let name = "";
+    let kind = "birthday";
+    try {
+      name = decodeURIComponent(location.hash.slice(1)).trim();
+      const prefix = name.split(":")[0].toLowerCase();
+      if (name.includes(":") && SECTIONS[prefix]) {
+        kind = prefix;
+        name = name.slice(prefix.length + 1).trim();
+      }
+    } catch (e) { /* badly formed link: fall back to no name */ }
+    const section = SECTIONS[kind];
+    const isTrip = kind !== "birthday";
+    const listPage = section.list;
+    const back = document.querySelector(".wall-back");
+    back.href = listPage;
+    back.setAttribute("aria-label", "Back to " + section.label);
+    window.addEventListener("hashchange", () => location.reload());
+
+    if (!name) {
+      location.replace(listPage);
+    } else {
+      document.getElementById("person-name").textContent = name;
+      document.title = name + " · GHUMI GHUMI";
+      // this person's photos and videos, in the order they were taken
+      const album = section.albums[name.toLowerCase()];
+      let photos = !album ? [] : WALL_ITEMS
+        .filter((i) => i.a === album)
+        .sort((a, b) => (a.t === b.t ? 0 : a.t === "p" ? -1 : 1) || a.src.localeCompare(b.src))
+        .map((i) => ({ src: i.t === "v" ? i.thumb : i.src, full: i.src, path: i.path, video: i.t === "v", alt: name + (isTrip ? "" : " birthday") + (i.t === "v" ? " video" : " photo") }));
+
+      // ---------- full-size viewer ----------
+      const lightbox = document.getElementById("lightbox");
+      const media = lightbox.querySelector(".lightbox-media");
+      const caption = lightbox.querySelector(".lightbox-caption");
+      let openIndex = -1;
+      let openedAt = 0;
+      let carousel = null;
+
+      function show(index) {
+        openIndex = (index + photos.length) % photos.length;
+        const item = photos[openIndex];
+        media.textContent = "";
+        let el;
+        if (item.video) {
+          el = document.createElement("video");
+          el.controls = true;
+          el.autoplay = true;
+          el.playsInline = true;
+          el.poster = item.src;
+        } else {
+          el = document.createElement("img");
+          el.alt = item.alt || "";
+        }
+        el.src = item.full || item.src;
+        media.appendChild(el);
+        caption.textContent = (item.title ? item.title + " · " : "") + (openIndex + 1) + " of " + photos.length;
+        if (lightbox.hidden) openedAt = performance.now();
+        lightbox.hidden = false;
+        if (carousel) carousel.pause(); // stop turning while a photo is open
+      }
+      function hide() {
+        media.textContent = "";
+        lightbox.hidden = true;
+        openIndex = -1;
+        if (carousel) carousel.resume();
+      }
+      lightbox.querySelector(".lightbox-close").addEventListener("click", hide);
+      lightbox.querySelector(".lightbox-prev").addEventListener("click", () => show(openIndex - 1));
+      lightbox.querySelector(".lightbox-next").addEventListener("click", () => show(openIndex + 1));
+      lightbox.addEventListener("click", (e) => {
+        // the click that opened the photo also lands here, so ignore clicks right after opening
+        if (performance.now() - openedAt < 400) return;
+        if (e.target === lightbox || e.target === media) hide();
+      });
+      window.addEventListener("keydown", (e) => {
+        if (lightbox.hidden) return;
+        if (e.key === "Escape") hide();
+        if (e.key === "ArrowLeft") show(openIndex - 1);
+        if (e.key === "ArrowRight") show(openIndex + 1);
+      });
+
+      // ---------- uploads ----------
+      // photos and videos added with the button are stored online under this page's own album
+      const uploadAlbum = Uploader.albumKey(kind, name);
+      Uploader.attach(document.getElementById("add-photos"), uploadAlbum, () => location.reload());
+
+      // ---------- carousel ----------
+      function build() {
+      if (!photos.length) {
+        document.getElementById("person-empty").hidden = false;
+      } else {
+        carousel = createCircularCarousel(document.getElementById("person-wall"), {
+          items: photos,
+          preset: "panorama",
+          intro: "rise",
+          cardWidth: 220,
+          aspectRatio: 0.75,
+          speed: 14,
+          captions: true,
+          tilt: 0,
+          perspective: 1800,
+          onOpen: show
+        });
+      }
+      }
+
+      // uploaded items come first, newest at the front; if they cannot be loaded the rest still shows
+      MediaStore.state().then(({ posts, hidden }) => {
+        photos = photos.filter((p) => !hidden.has(p.path)); // deleted from a page
+        const mine = posts.filter((p) => p.album === uploadAlbum).map((p) => ({
+          src: p.t === "v" ? p.thumb : p.src, full: p.src, video: p.t === "v", alt: name + (p.t === "v" ? " video" : " photo")
+        }));
+        photos = mine.concat(photos);
+      }).catch(() => {}).then(build);
+    }
+  </script>
+  <script src="lightbox-tools.js"></script>
+  <script>
+    // lets phones and computers install the site as an app (only on a real web address)
+    if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>

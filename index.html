@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" data-public>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GHUMI GHUMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GHUMI GHUMI">
+</head>
+<body class="landing">
+  <video class="bg-video" data-media="assets/landing.mp4" autoplay muted loop playsinline preload="auto"></video>
+  <div class="overlay"></div>
+
+  <main class="hero">
+    <h1 class="title">GHUMI GHUMI</h1>
+    <a class="continue-btn" href="login.html">
+      Continue
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6"/>
+      </svg>
+    </a>
+  </main>
+
+  <script src="media-paths.js"></script>
+  <script>
+    // lets phones and computers install the site as an app (only on a real web address)
+    if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>

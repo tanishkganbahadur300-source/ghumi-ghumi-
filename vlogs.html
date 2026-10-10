@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vlogs &amp; Photos · GHUMI GHUMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GHUMI GHUMI">
+  <script src="auth.js"></script>
+</head>
+<body class="wall-page">
+  <!-- everything posted so far, shown with the same dome as the photo wall -->
+  <div id="dome" class="dome"></div>
+  <p id="posts-empty" class="person-empty" hidden>Nothing posted yet. Open the camera to add the first one.</p>
+
+  <header class="wall-header">
+    <a class="wall-back" href="home.html" aria-label="Back to home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </a>
+    <h1 class="wall-title">Vlogs &amp; Photos</h1>
+    <div class="wall-actions">
+      <button id="open-camera" class="chip is-active" type="button">Open camera</button>
+    </div>
+  </header>
+
+  <!-- ---------- camera ---------- -->
+  <div id="camera" class="camera" hidden>
+    <video id="cam-live" class="cam-view" autoplay muted playsinline></video>
+    <img id="cam-photo" class="cam-view" alt="Photo you just took" hidden>
+    <video id="cam-clip" class="cam-view" controls playsinline hidden></video>
+
+    <button id="cam-close" class="lightbox-btn cam-close" type="button" aria-label="Close camera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <p id="cam-timer" class="cam-timer" hidden>0:00</p>
+    <p id="cam-message" class="cam-message" role="status"></p>
+
+    <div id="cam-shoot" class="cam-bar">
+      <button id="cam-flip" class="lightbox-btn" type="button" aria-label="Switch camera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M20 4v4h-4M4 20v-4h4"/></svg>
+      </button>
+      <button id="cam-snap" class="cam-btn cam-snap" type="button">Photo</button>
+      <button id="cam-record" class="cam-btn cam-record" type="button">Record</button>
+      <label class="lightbox-btn cam-file" aria-label="Choose a photo or video from this device">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 3.500 3 3-2.500 4.500 4"/></svg>
+        <input id="cam-pick" type="file" accept="image/*,video/*" hidden>
+      </label>
+    </div>
+
+    <div id="cam-review" class="cam-bar" hidden>
+      <button id="cam-retake" class="cam-btn" type="button">Retake</button>
+      <button id="cam-post" class="cam-btn cam-post" type="button">Post</button>
+    </div>
+  </div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lightbox-btn lightbox-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="lightbox-btn lightbox-prev" type="button" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <div class="lightbox-media"></div>
+    <button class="lightbox-btn lightbox-next" type="button" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+    <p class="lightbox-caption"></p>
+    <button id="post-delete" class="cam-btn lightbox-delete" type="button">Delete</button>
+  </div>
+
+  <script src="media-store.js"></script>
+  <script src="dome.js"></script>
+  <script src="lightbox-tools.js"></script>
+  <script>
+    // ---------- posts, shown in the dome ----------
+    let posts = [];
+    let openIndex = -1;
+    let openedAt = 0;
+
+    const lightbox = document.getElementById("lightbox");
+    const media = lightbox.querySelector(".lightbox-media");
+    const caption = lightbox.querySelector(".lightbox-caption");
+
+    function show(index) {
+      if (!posts.length) return;
+      openIndex = (index + posts.length) % posts.length;
+      const item = posts[openIndex];
+      media.textContent = "";
+      let el;
+      if (item.t === "v") {
+        el = document.createElement("video");
+        el.controls = true;
+        el.autoplay = true;
+        el.playsInline = true;
+        el.poster = item.thumb;
+      } else {
+        el = document.createElement("img");
+        el.alt = "Posted photo";
+      }
+      el.src = item.src;
+      media.appendChild(el);
+      caption.textContent = new Date(item.added).toLocaleDateString() + " · " + (openIndex + 1) + " of " + posts.length;
+      if (lightbox.hidden) openedAt = performance.now();
+      lightbox.hidden = false;
+    }
+    function hide() {
+      media.textContent = "";
+      lightbox.hidden = true;
+      openIndex = -1;
+    }
+    lightbox.querySelector(".lightbox-close").addEventListener("click", hide);
+    lightbox.querySelector(".lightbox-prev").addEventListener("click", () => show(openIndex - 1));
+    lightbox.querySelector(".lightbox-next").addEventListener("click", () => show(openIndex + 1));
+    lightbox.addEventListener("click", (e) => {
+      if (performance.now() - openedAt < 400) return;
+      if (e.target === lightbox || e.target === media) hide();
+    });
+    document.getElementById("post-delete").addEventListener("click", async (e) => {
+      if (openIndex < 0) return;
+      const button = e.currentTarget;
+      button.disabled = true;
+      try {
+        await MediaStore.remove(posts[openIndex].id);
+        hide();
+        await refresh();
+      } catch (err) {
+        caption.textContent = err.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+    window.addEventListener("keydown", (e) => {
+      if (!camera.hidden) {
+        if (e.key === "Escape") closeCamera();
+        return;
+      }
+      if (lightbox.hidden) return;
+      if (e.key === "Escape") hide();
+      if (e.key === "ArrowLeft") show(openIndex - 1);
+      if (e.key === "ArrowRight") show(openIndex + 1);
+    });
+
+    const dome = createDomeGallery(document.getElementById("dome"), {
+      items: posts,
+      fit: 1,
+      maxVerticalRotationDeg: 20,
+      dragDampening: 5,
+      grayscale: false,
+      onOpen: show
+    });
+
+    async function refresh() {
+      try {
+        posts = (await MediaStore.list()).filter((p) => p.album === MediaStore.ALBUM.key);
+      } catch (e) {
+        posts = [];
+      }
+      document.getElementById("posts-empty").hidden = posts.length > 0;
+      dome.setItems(posts);
+    }
+
+    // ---------- camera ----------
+    const camera = document.getElementById("camera");
+    const live = document.getElementById("cam-live");
+    const photoView = document.getElementById("cam-photo");
+    const clipView = document.getElementById("cam-clip");
+    const message = document.getElementById("cam-message");
+    const timer = document.getElementById("cam-timer");
+    const shootBar = document.getElementById("cam-shoot");
+    const reviewBar = document.getElementById("cam-review");
+    const recordBtn = document.getElementById("cam-record");
+    const MAX_SECONDS = 180; // vlogs stop by themselves after three minutes
+
+    let stream = null;
+    let facing = "user";
+    let recorder = null;
+    let chunks = [];
+    let ticking = null;
+    let pending = null; // { t, blob, thumb, url } waiting for Post or Retake
+
+    function stopStream() {
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+      live.srcObject = null;
+    }
+
+    async function startStream() {
+      stopStream();
+      message.textContent = "";
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        message.textContent = "This browser cannot open the camera here. Use the picture button to choose a photo or video instead.";
+        return;
+      }
+      const video = { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } };
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video, audio: true });
+      } catch (first) {
+        try {
+          // no microphone, or it was refused: carry on with picture only
+          stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+          message.textContent = "Microphone not available, so videos will have no sound.";
+        } catch (e) {
+          message.textContent = "The camera could not be opened. Allow camera access, or use the picture button to choose a photo or video.";
+          return;
+        }
+      }
+      live.srcObject = stream;
+    }
+
+    function setReview(on) {
+      shootBar.hidden = on;
+      reviewBar.hidden = !on;
+      live.hidden = on;
+      photoView.hidden = !(on && pending && pending.t === "p");
+      clipView.hidden = !(on && pending && pending.t === "v");
+    }
+
+    function clearPending() {
+      if (pending) URL.revokeObjectURL(pending.url);
+      pending = null;
+      photoView.removeAttribute("src");
+      clipView.pause();
+      clipView.removeAttribute("src");
+      clipView.load();
+    }
+
+    function review(next) {
+      clearPending();
+      pending = Object.assign({ url: URL.createObjectURL(next.blob) }, next);
+      if (pending.t === "p") photoView.src = pending.url;
+      else clipView.src = pending.url;
+      setReview(true);
+    }
+
+    async function openCamera() {
+      hide();
+      clearPending();
+      setReview(false);
+      camera.hidden = false;
+      await startStream();
+    }
+
+    function closeCamera() {
+      if (recorder && recorder.state !== "inactive") {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+      stopTimer();
+      stopStream();
+      clearPending();
+      camera.hidden = true;
+    }
+
+    document.getElementById("open-camera").addEventListener("click", openCamera);
+    document.getElementById("cam-close").addEventListener("click", closeCamera);
+    document.getElementById("cam-flip").addEventListener("click", () => {
+      if (recorder && recorder.state === "recording") return;
+      facing = facing === "user" ? "environment" : "user";
+      startStream();
+    });
+
+    // --- photo ---
+    document.getElementById("cam-snap").addEventListener("click", async () => {
+      if (!stream || !live.videoWidth) return;
+      if (recorder && recorder.state === "recording") return;
+      const w = live.videoWidth, h = live.videoHeight;
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(live, 0, 0, w, h);
+      const blob = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.9));
+      const thumb = await MediaStore.makeThumb(live, w, h);
+      review({ t: "p", blob, thumb });
+    });
+
+    // --- video ---
+    function stopTimer() {
+      clearInterval(ticking);
+      ticking = null;
+      timer.hidden = true;
+      recordBtn.textContent = "Record";
+      recordBtn.classList.remove("is-recording");
+    }
+
+    recordBtn.addEventListener("click", async () => {
+      if (recorder && recorder.state === "recording") {
+        recorder.stop();
+        return;
+      }
+      if (!stream || !live.videoWidth) return;
+      if (!window.MediaRecorder) {
+        message.textContent = "This browser cannot record video here. Use the picture button to choose a video instead.";
+        return;
+      }
+      const type = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"]
+        .find((m) => MediaRecorder.isTypeSupported(m));
+      // the picture for the tile is taken at the moment recording starts
+      const thumb = await MediaStore.makeThumb(live, live.videoWidth, live.videoHeight);
+      chunks = [];
+      recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+      recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      recorder.onstop = () => {
+        stopTimer();
+        const blob = new Blob(chunks, { type: recorder.mimeType || "video/webm" });
+        if (blob.size) review({ t: "v", blob, thumb });
+      };
+      recorder.start(1000);
+
+      const began = Date.now();
+      timer.hidden = false;
+      timer.textContent = "0:00";
+      recordBtn.textContent = "Stop";
+      recordBtn.classList.add("is-recording");
+      ticking = setInterval(() => {
+        const s = Math.floor((Date.now() - began) / 1000);
+        timer.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+        if (s >= MAX_SECONDS && recorder.state === "recording") recorder.stop();
+      }, 500);
+    });
+
+    // --- choose an existing photo or video instead ---
+    document.getElementById("cam-pick").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      try {
+        if (file.type.startsWith("image/")) {
+          const bitmap = await createImageBitmap(file);
+          const thumb = await MediaStore.makeThumb(bitmap, bitmap.width, bitmap.height);
+          review({ t: "p", blob: file, thumb });
+        } else if (file.type.startsWith("video/")) {
+          const probe = document.createElement("video");
+          probe.muted = true;
+          probe.playsInline = true;
+          probe.src = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => { probe.onloadeddata = resolve; probe.onerror = reject; });
+          probe.currentTime = Math.min(0.5, (probe.duration || 1) / 2);
+          await new Promise((resolve) => { probe.onseeked = resolve; });
+          const thumb = await MediaStore.makeThumb(probe, probe.videoWidth, probe.videoHeight);
+          URL.revokeObjectURL(probe.src);
+          review({ t: "v", blob: file, thumb });
+        } else {
+          message.textContent = "Choose a photo or a video.";
+        }
+      } catch (err) {
+        message.textContent = "That file could not be opened.";
+      }
+    });
+
+    // --- post / retake ---
+    document.getElementById("cam-retake").addEventListener("click", () => {
+      clearPending();
+      setReview(false);
+    });
+    document.getElementById("cam-post").addEventListener("click", async () => {
+      if (!pending) return;
+      const post = pending;
+      const button = document.getElementById("cam-post");
+      button.disabled = true;
+      button.textContent = "Posting…";
+      message.textContent = post.t === "v" ? "Uploading the video. Keep this page open." : "";
+      try {
+        await MediaStore.add({ t: post.t, blob: post.blob, thumb: post.thumb });
+      } catch (e) {
+        message.textContent = e.message;
+        return;
+      } finally {
+        button.disabled = false;
+        button.textContent = "Post";
+      }
+      message.textContent = "";
+      closeCamera();
+      await refresh();
+    });
+
+    window.addEventListener("pagehide", stopStream);
+
+    // the card on the home page opens the camera straight away; "#posts" just shows what was posted
+    refresh().then(() => { if (location.hash !== "#posts") openCamera(); });
+  </script>
+  <script>
+    // lets phones and computers install the site as an app (only on a real web address)
+    if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>

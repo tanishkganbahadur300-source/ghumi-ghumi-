@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Words · GHUMI GHUMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GHUMI GHUMI">
+  <script src="auth.js"></script>
+</head>
+<body class="list-page">
+  <div id="background" class="page-bg" aria-hidden="true"></div>
+
+  <header class="wall-header list-header">
+    <a class="wall-back" href="home.html" aria-label="Back to home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </a>
+    <h1 class="wall-title">Words</h1>
+  </header>
+
+  <main class="list-main">
+    <section class="words-today" aria-labelledby="today-title">
+      <h2 id="today-title" class="words-heading">Thought of the day</h2>
+      <blockquote id="today-text" class="words-quote"></blockquote>
+      <p id="today-by" class="words-by"></p>
+    </section>
+
+    <div class="words-tabs" role="tablist">
+      <button id="tab-thought" class="chip is-active" type="button" role="tab" aria-selected="true">Thoughts <span id="count-thought">0</span></button>
+      <button id="tab-poem" class="chip" type="button" role="tab" aria-selected="false">Poems <span id="count-poem">0</span></button>
+    </div>
+
+    <ul id="words-list" class="words-list"></ul>
+    <p id="words-empty" class="list-empty" hidden></p>
+
+    <form id="add-form" class="add-member" autocomplete="off">
+      <span class="add-label">Add a thought or poem</span>
+      <div class="words-kind">
+        <label><input type="radio" name="kind" value="thought" checked> Thought</label>
+        <label><input type="radio" name="kind" value="poem"> Poem</label>
+      </div>
+      <label class="sr-only" for="word-text">Your thought or poem</label>
+      <textarea id="word-text" class="add-input words-text" rows="4" maxlength="2000" placeholder="Write your thought here" required></textarea>
+      <div class="add-row">
+        <label class="sr-only" for="word-by">Written by</label>
+        <input id="word-by" class="add-input" type="text" maxlength="30" placeholder="Written by (optional)">
+        <button class="block-btn add-btn" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Add
+        </button>
+      </div>
+      <p id="add-note" class="add-note" role="status"></p>
+    </form>
+  </main>
+
+  <script src="backgrounds.js"></script>
+  <script src="media-paths.js"></script>
+  <script src="slideshow.js"></script>
+  <script>
+    createBackgroundSlideshow(document.getElementById("background"), {
+      images: BACKGROUND_IMAGES,
+      interval: 6000
+    });
+
+    // thoughts and poems added on this page are remembered in this browser
+    const STORE_KEY = "ghumi-words";
+
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+        return Array.isArray(saved) ? saved.filter((w) => w && typeof w.text === "string" && (w.kind === "thought" || w.kind === "poem")) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function save() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(words));
+      } catch (e) { /* storage unavailable: the list still works until the page is closed */ }
+    }
+
+    let words = load();
+    let showing = location.hash === "#poems" ? "poem" : "thought";
+
+    const list = document.getElementById("words-list");
+    const empty = document.getElementById("words-empty");
+    const note = document.getElementById("add-note");
+    const textBox = document.getElementById("word-text");
+
+    function renderToday() {
+      const thoughts = words.filter((w) => w.kind === "thought");
+      const text = document.getElementById("today-text");
+      const by = document.getElementById("today-by");
+      if (!thoughts.length) {
+        text.textContent = "No thoughts yet. Add the first one below.";
+        text.classList.add("is-empty");
+        by.textContent = "";
+        return;
+      }
+      // a different thought each day, going round the list in order
+      const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+      const pick = thoughts[day % thoughts.length];
+      text.classList.remove("is-empty");
+      text.textContent = pick.text;
+      by.textContent = pick.by ? "— " + pick.by : "";
+    }
+
+    function render() {
+      renderToday();
+      document.getElementById("count-thought").textContent = words.filter((w) => w.kind === "thought").length;
+      document.getElementById("count-poem").textContent = words.filter((w) => w.kind === "poem").length;
+      ["thought", "poem"].forEach((k) => {
+        const tab = document.getElementById("tab-" + k);
+        tab.classList.toggle("is-active", k === showing);
+        tab.setAttribute("aria-selected", k === showing ? "true" : "false");
+      });
+
+      list.textContent = "";
+      const shown = words.filter((w) => w.kind === showing);
+      empty.hidden = shown.length > 0;
+      empty.textContent = showing === "poem" ? "No poems yet. Add the first one below." : "No thoughts yet. Add the first one below.";
+
+      shown.slice().reverse().forEach((w) => {
+        const li = document.createElement("li");
+        li.className = "word-card" + (w.kind === "poem" ? " is-poem" : "");
+
+        const text = document.createElement("p");
+        text.className = "word-text";
+        text.textContent = w.text;
+        li.appendChild(text);
+
+        const foot = document.createElement("div");
+        foot.className = "word-foot";
+        const by = document.createElement("span");
+        by.textContent = w.by ? "— " + w.by : "";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "member-remove";
+        remove.setAttribute("aria-label", "Remove this " + w.kind);
+        remove.textContent = "×";
+        remove.addEventListener("click", () => {
+          words.splice(words.indexOf(w), 1);
+          save();
+          render();
+        });
+        foot.append(by, remove);
+        li.appendChild(foot);
+        list.appendChild(li);
+      });
+    }
+
+    function show(kind) {
+      showing = kind;
+      history.replaceState(null, "", kind === "poem" ? "#poems" : "#thoughts");
+      render();
+    }
+    document.getElementById("tab-thought").addEventListener("click", () => show("thought"));
+    document.getElementById("tab-poem").addEventListener("click", () => show("poem"));
+
+    const form = document.getElementById("add-form");
+    function syncKind() {
+      const kind = form.elements.kind.value;
+      textBox.placeholder = kind === "poem" ? "Write your poem here" : "Write your thought here";
+    }
+    form.addEventListener("change", syncKind);
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const kind = form.elements.kind.value;
+      const text = textBox.value.replace(/\r\n/g, "\n").trim();
+      if (!text) return;
+      const by = document.getElementById("word-by").value.trim().replace(/\s+/g, " ");
+      words.push({ kind, text, by, added: new Date().toISOString().slice(0, 10) });
+      save();
+      textBox.value = "";
+      note.textContent = (kind === "poem" ? "Poem" : "Thought") + " added.";
+      show(kind);
+    });
+
+    // links from the home page: #poems opens the poems, #add jumps to the form
+    if (location.hash === "#add") {
+      form.scrollIntoView({ block: "center" });
+      textBox.focus({ preventScroll: true });
+    }
+    form.elements.kind.value = showing;
+    syncKind();
+    render();
+  </script>
+  <script>
+    // lets phones and computers install the site as an app (only on a real web address)
+    if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>

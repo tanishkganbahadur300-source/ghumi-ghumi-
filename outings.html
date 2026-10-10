@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outings · GHUMI GHUMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GHUMI GHUMI">
+  <script src="auth.js"></script>
+</head>
+<body class="list-page">
+  <div id="background" class="page-bg" aria-hidden="true"></div>
+
+  <header class="wall-header list-header">
+    <a class="wall-back" href="home.html" aria-label="Back to home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </a>
+    <h1 class="wall-title">Outings</h1>
+  </header>
+
+  <main class="list-main">
+    <ul id="members" class="member-grid"></ul>
+    <p id="list-empty" class="list-empty" hidden>No outings yet. Add the first one below.</p>
+
+    <form id="add-form" class="add-member" autocomplete="off">
+      <label class="add-label" for="member-name">Add outing</label>
+      <div class="add-row">
+        <input id="member-name" class="add-input" type="text" maxlength="30" placeholder="Outing name" required>
+        <button class="block-btn add-btn" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Add
+        </button>
+      </div>
+      <p id="add-note" class="add-note" role="status"></p>
+    </form>
+  </main>
+
+  <script src="backgrounds.js"></script>
+  <script src="media-paths.js"></script>
+  <script src="slideshow.js"></script>
+  <script>
+    createBackgroundSlideshow(document.getElementById("background"), {
+      images: BACKGROUND_IMAGES,
+      interval: 6000
+    });
+
+    // the outings; ones added on this page are remembered in this browser
+    const MEMBERS = [];
+    const STORE_KEY = "ghumi-outings";
+
+    function loadAdded() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+        return Array.isArray(saved) ? saved.filter((n) => typeof n === "string") : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveAdded() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(added));
+      } catch (e) { /* storage unavailable: the list still works until the page is closed */ }
+    }
+
+    let added = loadAdded();
+    const list = document.getElementById("members");
+    const note = document.getElementById("add-note");
+
+    function render() {
+      list.textContent = "";
+      document.getElementById("list-empty").hidden = MEMBERS.length + added.length > 0;
+      MEMBERS.concat(added).forEach((name, index) => {
+        const li = document.createElement("li");
+        li.className = "member";
+
+        // each outing opens its own photo wall
+        const link = document.createElement("a");
+        link.className = "member-name";
+        link.href = "person.html#outing:" + encodeURIComponent(name);
+        link.textContent = name;
+
+        li.appendChild(link);
+
+        if (index >= MEMBERS.length) {
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "member-remove";
+          remove.setAttribute("aria-label", "Remove " + name);
+          remove.textContent = "×";
+          // the cross only asks; the item goes when "Delete" is pressed
+          const ask = document.createElement("span");
+          ask.className = "member-confirm";
+          ask.hidden = true;
+          const question = document.createElement("span");
+          question.textContent = "Delete?";
+          const yes = document.createElement("button");
+          yes.type = "button";
+          yes.className = "member-yes";
+          yes.textContent = "Delete";
+          const no = document.createElement("button");
+          no.type = "button";
+          no.className = "member-no";
+          no.textContent = "Keep";
+          ask.append(question, yes, no);
+
+          remove.addEventListener("click", () => {
+            remove.hidden = true;
+            ask.hidden = false;
+            no.focus();
+          });
+          no.addEventListener("click", () => {
+            ask.hidden = true;
+            remove.hidden = false;
+            remove.focus();
+          });
+          yes.addEventListener("click", () => {
+            added.splice(index - MEMBERS.length, 1);
+            saveAdded();
+            render();
+          });
+          li.append(remove, ask);
+        }
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById("add-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("member-name");
+      const name = input.value.trim().replace(/\s+/g, " ");
+      if (!name) return;
+      const exists = MEMBERS.concat(added).some((n) => n.toLowerCase() === name.toLowerCase());
+      if (exists) {
+        note.textContent = name + " is already in the list.";
+        return;
+      }
+      added.push(name);
+      saveAdded();
+      render();
+      input.value = "";
+      note.textContent = name + " added.";
+    });
+
+    render();
+  </script>
+  <script>
+    // lets phones and computers install the site as an app (only on a real web address)
+    if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>
