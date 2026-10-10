@@ -198,6 +198,28 @@ async function writeUsers(list) {
   if (!res.ok) throw new Error("user save failed " + res.status + " " + (await res.text()).slice(0, 200));
 }
 
+// ---------- thoughts and poems ----------
+// Kept together in one small list in the bucket, so everyone sees the same ones.
+const WORDS_KEY = "meta/words.json";
+const MAX_WORDS = 1000;
+
+async function readWords() {
+  const res = await s3("GET", WORDS_KEY);
+  if (res.status === 404) return [];
+  const text = await res.text();
+  if (!res.ok) throw new Error("words list failed " + res.status + " " + text.slice(0, 200));
+  try {
+    const list = JSON.parse(text);
+    return Array.isArray(list) ? list.filter((w) => w && typeof w.id === "string" && typeof w.text === "string") : [];
+  } catch (e) {
+    return [];
+  }
+}
+async function writeWords(list) {
+  const res = await s3("PUT", WORDS_KEY, {}, JSON.stringify(list), { "content-type": "application/json" });
+  if (!res.ok) throw new Error("words save failed " + res.status + " " + (await res.text()).slice(0, 200));
+}
+
 // ---------- routes ----------
 export default {
   async fetch(request) {
@@ -275,6 +297,30 @@ export default {
         if (path === "/hidden") list.push(target);
         await writeHidden(list);
         return json({ ok: true, hidden: list.length });
+      }
+
+      if (path === "/words" && (request.method === "GET" || request.method === "POST")) {
+        if (!tokenOk(request)) return json({ error: "Please log in." }, 401);
+        const words = await readWords();
+        if (request.method === "GET") return json({ words });
+        const body = await request.json().catch(() => ({}));
+        const kind = body.kind === "poem" ? "poem" : "thought";
+        const text = String(body.text || "").replace(/\r\n/g, "\n").trim().slice(0, 2000);
+        if (!text) return json({ error: "Write something first." }, 400);
+        if (words.length >= MAX_WORDS) return json({ error: "The list is full. Delete an old one first." }, 400);
+        const word = { id: Date.now() + "-" + crypto.randomBytes(6).toString("hex"), kind, text, by: cleanName(body.by), added: Date.now() };
+        words.push(word);
+        await writeWords(words);
+        return json({ ok: true, word });
+      }
+
+      const delWord = path.match(/^\/words\/(\d{13}-[a-f0-9]{12})$/);
+      if (request.method === "DELETE" && delWord) {
+        if (!tokenOk(request)) return json({ error: "Please log in." }, 401);
+        const words = await readWords();
+        const kept = words.filter((w) => w.id !== delWord[1]);
+        if (kept.length !== words.length) await writeWords(kept);
+        return json({ ok: true, removed: words.length - kept.length });
       }
 
       const del = path.match(/^\/posts\/(\d{13}-[a-f0-9]{12})$/);

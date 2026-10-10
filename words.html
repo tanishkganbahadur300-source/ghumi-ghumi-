@@ -61,6 +61,7 @@
     </form>
   </main>
 
+  <script src="words-store.js"></script>
   <script src="backgrounds.js"></script>
   <script src="media-paths.js"></script>
   <script src="slideshow.js"></script>
@@ -70,24 +71,8 @@
       interval: 6000
     });
 
-    // thoughts and poems added on this page are remembered in this browser
-    const STORE_KEY = "ghumi-words";
-
-    function load() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORE_KEY));
-        return Array.isArray(saved) ? saved.filter((w) => w && typeof w.text === "string" && (w.kind === "thought" || w.kind === "poem")) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-    function save() {
-      try {
-        localStorage.setItem(STORE_KEY, JSON.stringify(words));
-      } catch (e) { /* storage unavailable: the list still works until the page is closed */ }
-    }
-
-    let words = load();
+    // thoughts and poems are kept online, so everyone sees the same ones
+    let words = [];
     let showing = location.hash === "#poems" ? "poem" : "thought";
 
     const list = document.getElementById("words-list");
@@ -146,10 +131,17 @@
         remove.className = "member-remove";
         remove.setAttribute("aria-label", "Remove this " + w.kind);
         remove.textContent = "×";
-        remove.addEventListener("click", () => {
-          words.splice(words.indexOf(w), 1);
-          save();
-          render();
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
+          try {
+            await WordsStore.remove(w.id);
+            words.splice(words.indexOf(w), 1);
+            note.textContent = "";
+            render();
+          } catch (err) {
+            remove.disabled = false;
+            note.textContent = err instanceof TypeError ? "No connection. Not deleted." : err.message;
+          }
         });
         foot.append(by, remove);
         li.appendChild(foot);
@@ -171,17 +163,25 @@
       textBox.placeholder = kind === "poem" ? "Write your poem here" : "Write your thought here";
     }
     form.addEventListener("change", syncKind);
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const kind = form.elements.kind.value;
       const text = textBox.value.replace(/\r\n/g, "\n").trim();
       if (!text) return;
       const by = document.getElementById("word-by").value.trim().replace(/\s+/g, " ");
-      words.push({ kind, text, by, added: new Date().toISOString().slice(0, 10) });
-      save();
-      textBox.value = "";
-      note.textContent = (kind === "poem" ? "Poem" : "Thought") + " added.";
-      show(kind);
+      const button = form.querySelector(".add-btn");
+      button.disabled = true;
+      note.textContent = "Adding…";
+      try {
+        words.push(await WordsStore.add({ kind, text, by }));
+        textBox.value = "";
+        note.textContent = (kind === "poem" ? "Poem" : "Thought") + " added. Everyone can see it now.";
+        show(kind);
+      } catch (err) {
+        note.textContent = err instanceof TypeError ? "No connection. Not added, try again." : err.message;
+      } finally {
+        button.disabled = false;
+      }
     });
 
     // links from the home page: #poems opens the poems, #add jumps to the form
@@ -191,7 +191,21 @@
     }
     form.elements.kind.value = showing;
     syncKind();
+    document.getElementById("word-by").value = Auth.name();
     render();
+
+    async function refresh() {
+      try {
+        words = await WordsStore.list();
+        render();
+      } catch (err) {
+        if (!words.length) empty.textContent = "Could not load them. Check the internet and open this page again.";
+      }
+    }
+    refresh();
+    // show what others added when coming back to this page
+    window.addEventListener("pageshow", (e) => { if (e.persisted) refresh(); });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
   </script>
   <script>
     // lets phones and computers install the site as an app (only on a real web address)

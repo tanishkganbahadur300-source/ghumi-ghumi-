@@ -126,6 +126,7 @@
   <script src="backgrounds.js"></script>
   <script src="media-paths.js"></script>
   <script src="slideshow.js"></script>
+  <script src="words-store.js"></script>
   <script src="media-store.js"></script>
   <script>
     // ---------- account menu ----------
@@ -165,21 +166,11 @@
     });
 
     // ---------- Words card: show the added thoughts and poems, newest first ----------
-    const WORDS_KEY = "ghumi-words";
+    let words = [];
     const wordsFeed = document.getElementById("words-feed");
     const wordsLinks = document.getElementById("words-links");
 
-    function loadWords() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(WORDS_KEY));
-        return Array.isArray(saved) ? saved.filter((w) => w && typeof w.text === "string" && (w.kind === "thought" || w.kind === "poem")) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-
     function renderWords() {
-      const words = loadWords();
       wordsFeed.textContent = "";
       wordsFeed.hidden = words.length === 0;
       // once there is something to show, the two plain links make way for it
@@ -205,24 +196,31 @@
         remove.className = "member-remove";
         remove.setAttribute("aria-label", "Delete this " + w.kind);
         remove.textContent = "×";
-        remove.addEventListener("click", () => {
-          const all = loadWords();
-          const at = all.findIndex((x) => x.kind === w.kind && x.text === w.text && x.by === w.by && x.added === w.added);
-          if (at !== -1) all.splice(at, 1);
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
           try {
-            localStorage.setItem(WORDS_KEY, JSON.stringify(all));
-          } catch (e) { /* storage unavailable */ }
-          renderWords();
+            await WordsStore.remove(w.id);
+            words = words.filter((x) => x.id !== w.id);
+            renderWords();
+          } catch (e) {
+            remove.disabled = false;
+          }
         });
 
         li.append(link, remove);
         wordsFeed.appendChild(li);
       });
     }
-    renderWords();
-    // keep the card up to date when something is added in another tab or on coming back to this page
-    window.addEventListener("storage", renderWords);
-    window.addEventListener("pageshow", renderWords);
+    // they are kept online: load them now, and again on coming back to this page
+    async function refreshWords() {
+      try {
+        words = await WordsStore.list();
+        renderWords();
+      } catch (e) { /* no connection: the card keeps what it shows */ }
+    }
+    refreshWords();
+    window.addEventListener("pageshow", (e) => { if (e.persisted) refreshWords(); });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshWords(); });
 
     createBackgroundSlideshow(document.getElementById("background"), {
       images: BACKGROUND_IMAGES,
