@@ -178,7 +178,7 @@ async function writeHidden(list) {
 // ---------- who may log in ----------
 // Everyone shares one password; the list of names is kept in the bucket so more can be added.
 const USERS_KEY = "meta/users.json";
-const FIRST_USERS = ["Aditya", "Tanishk", "Sunakshi", "Gauri", "Saloni", "Pradyumna", "Shreya", "Parnavi", "Nishat", "Aarya", "Yashwant"];
+const FIRST_USERS = ["Aditya", "Tanishk", "Sunakshi", "Gauri", "Saloni", "Pradyumna", "Shreya", "Parnavi", "Nishant", "Aarya", "Yashwant"];
 const cleanName = (value) => String(value || "").trim().replace(/\s+/g, " ").slice(0, 30);
 
 async function readUsers() {
