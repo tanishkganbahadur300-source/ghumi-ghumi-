@@ -6,6 +6,12 @@ const MEDIA_BASE = "";
 
 const mediaUrl = (path) => MEDIA_BASE + path;
 
+// The videos are too big to live with the site's code, so online they come from their own
+// free storage. On your own computer they are read from the wall/video folder as before.
+const VIDEO_BASE = "https://br-quiet-salad-b329bfb0.storage.c-4.ap-southeast-1.aws.neon.tech/videos/";
+const ON_OWN_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+const videoUrl = (path) => (ON_OWN_COMPUTER ? MEDIA_BASE : VIDEO_BASE) + path;
+
 // The photo lists (wall.js, images.js, backgrounds.js) hold paths inside the site.
 // Each item keeps that as `path` (used to remember deleted items) and gets full addresses.
 (() => {
@@ -13,7 +19,7 @@ const mediaUrl = (path) => MEDIA_BASE + path;
     WALL_ITEMS.forEach((i) => {
       i.path = i.src;
       i.thumb = mediaUrl(i.thumb);
-      i.src = mediaUrl(i.src);
+      i.src = i.t === "v" ? videoUrl(i.src) : mediaUrl(i.src);
     });
   }
   if (typeof SPIRAL_IMAGES !== "undefined") {

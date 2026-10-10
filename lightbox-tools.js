@@ -32,9 +32,12 @@
   const sitePath = (url) => {
     try {
       // media kept in cloud storage: the part after the storage address is the path
-      if (typeof MEDIA_BASE !== "undefined" && MEDIA_BASE && url.startsWith(MEDIA_BASE)) {
-        const kept = decodeURIComponent(url.slice(MEDIA_BASE.length).split("?")[0]);
-        return /^(wall\/(full|video)|images)\/[A-Za-z0-9._-]{1,80}$/.test(kept) ? kept : "";
+      const bases = [typeof MEDIA_BASE !== "undefined" ? MEDIA_BASE : "", typeof VIDEO_BASE !== "undefined" ? VIDEO_BASE : ""];
+      for (const base of bases) {
+        if (base && url.startsWith(base)) {
+          const kept = decodeURIComponent(url.slice(base.length).split("?")[0]);
+          return /^(wall\/(full|video)|images)\/[A-Za-z0-9._-]{1,80}$/.test(kept) ? kept : "";
+        }
       }
       const u = new URL(url, location.href);
       if (u.origin !== location.origin) return "";
